@@ -49,18 +49,11 @@ def _(moons):
 
 @app.cell
 def _(moons):
-    neighbors = NearestNeighbors(n_neighbors=15).fit(moons)
-    adjacency_matrix = neighbors.kneighbors_graph(moons).toarray()
+    neighbors = NearestNeighbors(n_neighbors=2).fit(moons)
+    A = neighbors.kneighbors_graph(moons).toarray()
+    adjacency_matrix = np.maximum(A, A.T)
     adjacency_matrix
     return (adjacency_matrix,)
-
-
-@app.cell
-def _(adjacency_matrix):
-    plt.imshow(adjacency_matrix, cmap="grey")
-    plt.axis("off")
-    plt.gca()
-    return
 
 
 @app.cell(hide_code=True)
@@ -73,9 +66,17 @@ def _(adjacency_matrix, moons, n_nodes):
                     [moons[i, 1], moons[j, 1]],
                     "-",
                     color="grey",
-                    lw=0.05,
+                    lw=0.5,
                 )
     scatter(moons)
+    return
+
+
+@app.cell
+def _(adjacency_matrix):
+    plt.imshow(adjacency_matrix, cmap="grey")
+    plt.axis("off")
+    plt.gca()
     return
 
 
@@ -94,7 +95,20 @@ def _(adjacency_matrix):
 @app.cell
 def _(L):
     eigenvalues, eigenvectors = eigh(L)
-    eigenvectors[:, :3]
+    spectral_embedding = eigenvectors[:, 1:3]
+    color_by_clusters(spectral_embedding, compute_clusters(spectral_embedding))
+    return (spectral_embedding,)
+
+
+@app.cell
+def _(spectral_embedding):
+    spectral_embedding.shape
+    return
+
+
+@app.cell
+def _(moons, spectral_embedding):
+    color_by_clusters(moons, compute_clusters(spectral_embedding[:, :2]))
     return
 
 
