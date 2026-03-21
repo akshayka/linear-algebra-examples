@@ -194,7 +194,7 @@ def _(fiedler_eigenvector):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    Indeed, if we assign clusters based on a $k$-means clustering of the Fiedler eigenvectors, we obtain the natural clustering on the moons dataset.
+    Indeed, if we assign clusters based on a $k$-means clustering of the Fiedler eigenvector, we obtain the natural clustering on the moons dataset.
     """)
     return
 
