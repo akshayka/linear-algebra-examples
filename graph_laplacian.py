@@ -26,8 +26,8 @@ with app.setup:
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    This notebook shows a special way to represent graphs as a matrix, capturing
-    important characteristics of the graph using.
+    This notebook shows a special way to represent graphs as matrices, capturing
+    important characteristics of the graph's connectivity.
 
     The Laplacian matrix of an undirected graph with degree matrix $D$ and adjacency matrix $A$
     is the symmetric postive semidefinite matrix
