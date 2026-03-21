@@ -49,7 +49,7 @@ def _(moons):
 
 @app.cell
 def _(moons):
-    neighbors = NearestNeighbors(n_neighbors=2).fit(moons)
+    neighbors = NearestNeighbors(n_neighbors=7).fit(moons)
     A = neighbors.kneighbors_graph(moons).toarray()
     adjacency_matrix = np.maximum(A, A.T)
     adjacency_matrix
@@ -80,6 +80,13 @@ def _(adjacency_matrix):
     return
 
 
+@app.function
+def laplacian_matrix(adjacency_matrix):
+    degree_matrix = np.diag(np.sum(adjacency_matrix, axis=1))
+    L = degree_matrix - adjacency_matrix
+    return L
+
+
 @app.cell
 def _(moons):
     color_by_clusters(moons, compute_clusters(moons))
@@ -93,30 +100,11 @@ def _(adjacency_matrix):
 
 
 @app.cell
-def _(L):
+def _(L, moons):
     eigenvalues, eigenvectors = eigh(L)
-    spectral_embedding = eigenvectors[:, 1:3]
-    color_by_clusters(spectral_embedding, compute_clusters(spectral_embedding))
-    return (spectral_embedding,)
-
-
-@app.cell
-def _(spectral_embedding):
-    spectral_embedding.shape
+    fiedler_eigenvector = eigenvectors[:, 1].reshape(-1, 1)
+    color_by_clusters(moons, compute_clusters(fiedler_eigenvector))
     return
-
-
-@app.cell
-def _(moons, spectral_embedding):
-    color_by_clusters(moons, compute_clusters(spectral_embedding[:, :2]))
-    return
-
-
-@app.function
-def laplacian_matrix(adjacency_matrix):
-    degree_matrix = np.diag(np.sum(adjacency_matrix, axis=1))
-    L = degree_matrix - adjacency_matrix
-    return L
 
 
 @app.function
