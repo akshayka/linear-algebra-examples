@@ -14,7 +14,7 @@ import marimo
 __generated_with = "0.21.1"
 app = marimo.App()
 
-with app.setup:
+with app.setup(hide_code=True):
     import marimo as mo
     import numpy as np
     import matplotlib.pyplot as plt
@@ -26,6 +26,8 @@ with app.setup:
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
+    # Graph Laplacian
+
     This notebook shows a special way to represent graphs as matrices, capturing
     important characteristics of the graph's connectivity.
 
@@ -114,11 +116,11 @@ def _():
     mo.md(r"""
     ## Neighborhood graph
 
-    We can discover the natural clusters if we cluster the second eigenvector of a particular Laplacian matrix, interpreting the original data as a graph with two points connected if one is a nearest neighbor of the other, where the number of neighbors is a parameter.
+    We can discover the natural clusters if we cluster the second eigenvector of a particular Laplacian matrix, interpreting the original data as a graph with two points connected if one is a nearest neighbor of the other. The number of neighbors is a parameter we can vary.
 
     ### Adjacency matrix
 
-    First, we form the graph's **adjacency matrix.** Adjust the number of neighbors to see how it affects the matrix.
+    First, we form the graph's **adjacency matrix.** Adjust the number of neighbors to see how it affects the matrix. In the visualization below, a black patch at index $(i, j)$ indicates that $A_{ij} = 1$, meaning nodes $i$ and $j$ are connected in the graph.
     """)
     return
 
