@@ -68,36 +68,44 @@ def _():
     ## Spectral clustering
 
     In this notebook we show how the eigenvectors of a graph Laplacian can be used to cluster
-    data points in settings where a naive application of $k$ means fails. We will use data in the "moons" pattern.
-
-    We start with a naive clustering.
+    data points in settings where a naive application of $k$-means fails.
     """)
-    return
-
-
-@app.cell
-def _():
-    moons, _ = sklearn.datasets.make_moons(n_samples=100)
-    return (moons,)
-
-
-@app.cell
-def _(moons):
-    scatter(moons)
     return
 
 
 @app.cell(hide_code=True)
 def _():
-    mo.md(r"""
-    $k$ means applied directly to this dataset fails to discover the two natural clusters.
-    """)
-    return
+    dataset_picker = mo.ui.dropdown(
+        options={"Two Moons": "moons", "Concentric Circles": "circles"},
+        value="Two Moons",
+        label="Dataset",
+    )
+
+    dataset_picker
+    return (dataset_picker,)
 
 
 @app.cell
-def _(moons):
-    color_by_clusters(moons, compute_clusters(moons))
+def _(dataset_picker):
+    if dataset_picker.value == "moons":
+        data, _ = sklearn.datasets.make_moons(n_samples=200, noise=0.06, random_state=0)
+    else:
+        data, _ = sklearn.datasets.make_circles(
+            n_samples=200, noise=0.05, factor=0.4, random_state=0
+        )
+    return (data,)
+
+
+@app.cell(hide_code=True)
+def _(data):
+    mo.hstack(
+        [
+            scatter(data, title="raw data"),
+            color_by_clusters(
+                data, compute_clusters(data), title="k-means on raw data"
+            ),
+        ]
+    )
     return
 
 
@@ -109,25 +117,36 @@ def _():
     We can discover the natural clusters if we cluster the second eigenvector of a particular Laplacian matrix, interpreting the original data as a graph with two points connected if one is a nearest neighbor of the other, where the number of neighbors is a parameter.
 
     ### Adjacency matrix
-    First, we form the graph's **adjacency matrix.**
+
+    First, we form the graph's **adjacency matrix.** Adjust the number of neighbors to see how it affects the matrix.
     """)
     return
 
 
 @app.cell
-def _(moons):
-    neighbors = NearestNeighbors().fit(moons)
-    A = neighbors.kneighbors_graph(moons).toarray()
-    adjacency_matrix = np.maximum(A, A.T)
-    adjacency_matrix
+def _():
+    n_neighbors = mo.ui.slider(
+        value=5, start=3, stop=20, step=1, label="Number of neighbors $k$", show_value=True
+    )
+    n_neighbors
+    return (n_neighbors,)
+
+
+@app.cell
+def _(data, n_neighbors):
+    neighbors = NearestNeighbors(n_neighbors=n_neighbors.value).fit(data)
+    _A = neighbors.kneighbors_graph(data).toarray()
+    adjacency_matrix = np.maximum(_A, _A.T)
     return (adjacency_matrix,)
 
 
 @app.cell(hide_code=True)
 def _(adjacency_matrix):
-    plt.imshow(adjacency_matrix, cmap="grey")
-    plt.axis("off")
+    plt.imshow(adjacency_matrix, cmap="gray_r")
     plt.gca()
+    plt.xlabel("node index")
+    plt.ylabel("node index")
+    plt.title(f"Adjacency matrix A")
     return
 
 
@@ -170,19 +189,25 @@ def _(L):
 
 
 @app.cell(hide_code=True)
-def _():
-    mo.md(r"""
-    We can plot the entries of the Fiedler eigenvector. Notice how they sharply separate into two groups, suggesting that it may be useful in clustering the original data.
+def _(n_neighbors):
+    mo.md(rf"""
+    We can plot the entries of the Fiedler eigenvector. Notice how they sharply
+    separate into two groups, suggesting that it may be useful in clustering the
+    original data. The number of neighbors affects the structure of the graph
+    and the distribution of values of the Fiedler eigenvalue.
+
+    {n_neighbors}
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(fiedler_eigenvector):
     plt.scatter(
         range(len(fiedler_eigenvector)),
         fiedler_eigenvector,
         c=compute_clusters(fiedler_eigenvector),
+        cmap="coolwarm",
         s=10,
     )
     plt.xlabel("indices")
@@ -200,15 +225,17 @@ def _():
 
 
 @app.cell
-def _(fiedler_eigenvector, moons):
-    color_by_clusters(moons, compute_clusters(fiedler_eigenvector))
+def _(data, fiedler_eigenvector):
+    color_by_clusters(data, compute_clusters(fiedler_eigenvector))
     return
 
 
 @app.function
-def color_by_clusters(X, cluster_labels):
-    plt.scatter(X[:, 0], X[:, 1], s=1, c=cluster_labels, cmap='viridis')
+def color_by_clusters(X, cluster_labels, title=""):
+    plt.figure()
+    plt.scatter(X[:, 0], X[:, 1], s=2, c=cluster_labels, cmap='coolwarm')
     plt.axis("equal")
+    plt.title(title)
     return plt.gca()
 
 
@@ -220,9 +247,11 @@ def compute_clusters(X):
 
 
 @app.function
-def scatter(X):
-    plt.scatter(X[:, 0], X[:, 1], s=1)
+def scatter(X, title=""):
+    plt.figure()
+    plt.scatter(X[:, 0], X[:, 1], s=2)
     plt.axis("equal")
+    plt.title(title)
     return plt.gca()
 
 
