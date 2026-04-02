@@ -3,7 +3,7 @@
 # dependencies = [
 #     "marimo>=0.22.0",
 #     "matplotlib==3.10.8",
-#     "numpy==2.4.3",
+#     "numpy==2.4.4",
 #     "scikit-image==0.26.0",
 #     "wigglystuff==0.3.1",
 # ]
@@ -15,7 +15,7 @@ __generated_with = "0.22.0"
 app = marimo.App()
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     import marimo as mo
     import numpy as np
@@ -30,11 +30,6 @@ def _():
 @app.cell
 def _(np):
     def low_rank_rgb(img, rank):
-        """
-        img: array of shape (H, W, 3) with values in [0, 1]
-        rank: target rank per channel
-        returns: low-rank approximation with same shape
-        """
         height, width, channels = img.shape
         assert channels == 3, "Expected RGB image with shape (H, W, 3)"
 
@@ -51,20 +46,17 @@ def _(np):
 
 @app.cell(hide_code=True)
 def _(WebcamCapture, mo):
-    camera = mo.ui.anywidget(WebcamCapture(interval_ms=1000))
+    camera = mo.ui.anywidget(WebcamCapture())
     camera
     return (camera,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(camera, mo, np):
-    from skimage.transform import resize
-
     mo.stop(not camera.image_base64, mo.md("**Take a photo to get started.**"))
 
     pil_image = camera.get_pil()
     image = np.array(pil_image)[:, :, :3] / 255.0
-    image = resize(image, (128, 128, 3), anti_aliasing=True)
     return (image,)
 
 
