@@ -5,6 +5,7 @@
 #     "matplotlib==3.10.8",
 #     "numpy==2.4.3",
 #     "scikit-image==0.26.0",
+#     "wigglystuff==0.3.1",
 # ]
 # ///
 
@@ -21,18 +22,9 @@ def _():
     import matplotlib.pyplot as plt
     from skimage import data
     from skimage.util import img_as_float
+    from wigglystuff import WebcamCapture
 
-    return data, img_as_float, mo, np, plt
-
-
-@app.cell
-def _(data, img_as_float):
-    from skimage.transform import resize
-
-    original_image = data.astronaut()
-    image = img_as_float(original_image)
-    image = resize(image, (128, 128, 3), anti_aliasing=True)
-    return (image,)
+    return WebcamCapture, mo, np, plt
 
 
 @app.cell
@@ -55,6 +47,25 @@ def _(np):
         return out
 
     return (low_rank_rgb,)
+
+
+@app.cell(hide_code=True)
+def _(WebcamCapture, mo):
+    camera = mo.ui.anywidget(WebcamCapture(interval_ms=1000))
+    camera
+    return (camera,)
+
+
+@app.cell(hide_code=True)
+def _(camera, mo, np):
+    from skimage.transform import resize
+
+    mo.stop(not camera.image_base64, mo.md("**Take a photo to get started.**"))
+
+    pil_image = camera.get_pil()
+    image = np.array(pil_image)[:, :, :3] / 255.0
+    image = resize(image, (128, 128, 3), anti_aliasing=True)
+    return (image,)
 
 
 @app.cell
