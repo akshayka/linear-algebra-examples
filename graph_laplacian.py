@@ -128,7 +128,7 @@ def _():
 @app.cell
 def _():
     n_neighbors = mo.ui.slider(
-        value=5, start=3, stop=20, step=1, label="Number of neighbors $k$", show_value=True
+        value=11, start=3, stop=20, step=1, label="Number of neighbors $k$", show_value=True
     )
     n_neighbors
     return (n_neighbors,)
@@ -143,12 +143,31 @@ def _(data, n_neighbors):
 
 
 @app.cell(hide_code=True)
-def _(adjacency_matrix):
+def _(adjacency_matrix, data):
     plt.imshow(adjacency_matrix, cmap="gray_r")
     plt.gca()
     plt.xlabel("node index")
     plt.ylabel("node index")
     plt.title(f"Adjacency matrix A")
+    _adjacency_ax = plt.gca()
+
+    plt.figure()
+    _ax = scatter(data, title="Neighbor graph")
+    _n = adjacency_matrix.shape[0]
+    for _i in range(_n):
+        for _j in range(_i + 1, _n):
+            if adjacency_matrix[_i, _j] > 0:
+                _ax.plot(
+                    [data[_i, 0], data[_j, 0]],
+                    [data[_i, 1], data[_j, 1]],
+                    color="gray",
+                    linewidth=0.4,
+                    alpha=0.5,
+                )
+    # Re-scatter on top so points aren't hidden behind edges
+    _ax.scatter(data[:, 0], data[:, 1], s=10, color="royalblue", zorder=3)
+
+    mo.hstack([_adjacency_ax, _ax])
     return
 
 
@@ -178,7 +197,7 @@ def _(adjacency_matrix):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    The bottom eigenvector of $L$ is the all-ones eigenvector with eigenvalue $0$, which is uninteresting. The next eigenvector, however, also has a small eigenvalue, meaning its associated eigenvector has connected nodes placed near each other. This second eigenvector is known as the **Fiedler eigenvector.**
+    The bottom eigenvector of $L$ is the all-ones eigenvector with eigenvalue $0$. The next eigenvector, however, also has a small eigenvalue, meaning its associated eigenvector has connected nodes placed near each other. This second eigenvector is known as the **Fiedler eigenvector.**
     """)
     return
 
@@ -186,7 +205,7 @@ def _():
 @app.cell
 def _(L):
     eigenvalues, eigenvectors = eigh(L)
-    fiedler_eigenvector = eigenvectors[:, 1].reshape(-1, 1)
+    fiedler_eigenvector = eigenvectors[:, 0].reshape(-1, 1)
     return (fiedler_eigenvector,)
 
 
@@ -251,7 +270,7 @@ def compute_clusters(X):
 @app.function
 def scatter(X, title=""):
     plt.figure()
-    plt.scatter(X[:, 0], X[:, 1], s=2)
+    plt.scatter(X[:, 0], X[:, 1], s=10)
     plt.axis("equal")
     plt.title(title)
     return plt.gca()
